@@ -19,13 +19,10 @@
   const navTabs = document.querySelectorAll('.nav-tab');
   const subNav = document.querySelector('.sub-nav');
   const subTabs = document.querySelectorAll('.sub-tab');
-  const detailTabsContainer = document.querySelector('.detail-tabs');
-
   // State
   let currentTab = 'major';
   let currentSuit = 'wands';
   let currentCard = null;
-  let currentDetailTab = 'description';
 
   // ========================================
   // Card Rendering
@@ -131,7 +128,6 @@
 
   function openModal(card) {
     currentCard = card;
-    currentDetailTab = 'description';
 
     // Set image
     modalImg.src = card.image;
@@ -150,32 +146,43 @@
       .map(kw => `<span class="keyword-tag">${kw}</span>`)
       .join('');
 
-    // Set detail tabs active state
-    detailTabsContainer.querySelectorAll('.detail-tab').forEach(t => {
-      t.classList.remove('active');
-      if (t.dataset.detail === 'description') t.classList.add('active');
-    });
-
-    // Render description tab
-    renderDetailPanel('description');
+    // Render all sections
+    renderAllSections(card);
 
     // Show modal
     modalOverlay.classList.add('open');
     document.body.style.overflow = 'hidden';
 
+    // Push history state for mobile back button
+    history.pushState({ modal: true }, '');
+
     // Focus trap
     modalClose.focus();
   }
 
-  function closeModal() {
+  function closeModal(fromPopstate) {
+    if (!modalOverlay.classList.contains('open')) return;
+
     modalOverlay.classList.remove('open');
     document.body.style.overflow = '';
     currentCard = null;
+
+    // Remove history entry unless triggered by popstate
+    if (!fromPopstate) {
+      history.back();
+    }
 
     // Return focus to the card that opened the modal
     const activeCard = document.querySelector('.card-item:focus, .card-item:hover');
     if (activeCard) activeCard.focus();
   }
+
+  // Close modal on mobile back button
+  window.addEventListener('popstate', function() {
+    if (modalOverlay.classList.contains('open')) {
+      closeModal(true);
+    }
+  });
 
   modalClose.addEventListener('click', closeModal);
 
@@ -193,40 +200,24 @@
   });
 
   // ========================================
-  // Detail Tabs
+  // All Sections Rendering (scroll view)
   // ========================================
 
-  detailTabsContainer.addEventListener('click', (e) => {
-    const tab = e.target.closest('.detail-tab');
-    if (!tab) return;
-
-    detailTabsContainer.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-
-    currentDetailTab = tab.dataset.detail;
-    renderDetailPanel(currentDetailTab);
-  });
-
-  function renderDetailPanel(tabName) {
-    if (!currentCard) return;
+  function renderAllSections(card) {
+    const situations = [
+      { key: 'love', title: '❤️ 사랑 & 관계' },
+      { key: 'career', title: '💼 직업 & 커리어' },
+      { key: 'finance', title: '💰 금전 & 재정' },
+      { key: 'health', title: '🏥 건강' },
+      { key: 'creativity', title: '🎨 창작 & 예술' }
+    ];
 
     let html = '';
 
-    if (tabName === 'description') {
-      html = renderDescriptionPanel(currentCard);
-    } else if (tabName === 'yesOrNo') {
-      html = renderYesOrNoPanel(currentCard);
-    } else {
-      html = renderSituationPanel(currentCard, tabName);
-    }
-
-    detailContent.innerHTML = html;
-    detailContent.scrollTop = 0;
-  }
-
-  function renderDescriptionPanel(card) {
-    return `
-      <div class="detail-panel active">
+    // Description section
+    html += `
+      <div class="detail-section">
+        <h3 class="section-title">📖 카드 설명</h3>
         <div class="card-description">${card.description}</div>
         <div class="meaning-section upright">
           <h4>▲ 정방향</h4>
@@ -238,45 +229,42 @@
         </div>
       </div>
     `;
-  }
 
-  function renderSituationPanel(card, situation) {
-    const situationData = card.situations[situation];
-    if (!situationData) return '<div class="detail-panel active"><p>데이터가 없습니다.</p></div>';
+    // Situation sections
+    situations.forEach(({ key, title }) => {
+      const data = card.situations[key];
+      if (!data) return;
 
-    const titles = {
-      love: '❤️ 사랑 & 관계',
-      career: '💼 직업 & 커리어',
-      finance: '💰 금전 & 재정',
-      health: '🏥 건강',
-      creativity: '🎨 창작 & 예술'
-    };
-
-    return `
-      <div class="detail-panel active">
-        <h3>${titles[situation] || situation}</h3>
-        <div class="meaning-section upright">
-          <h4>▲ 정방향</h4>
-          <p>${situationData.upright}</p>
+      html += `
+        <div class="section-divider"></div>
+        <div class="detail-section">
+          <h3 class="section-title">${title}</h3>
+          <div class="meaning-section upright">
+            <h4>▲ 정방향</h4>
+            <p>${data.upright}</p>
+          </div>
+          <div class="meaning-section reversed">
+            <h4>▼ 역방향</h4>
+            <p>${data.reversed}</p>
+          </div>
         </div>
-        <div class="meaning-section reversed">
-          <h4>▼ 역방향</h4>
-          <p>${situationData.reversed}</p>
-        </div>
-      </div>
-    `;
-  }
+      `;
+    });
 
-  function renderYesOrNoPanel(card) {
+    // Yes/No section
     const yesOrNo = card.situations.yesOrNo || '정보 없음';
-
-    return `
-      <div class="detail-panel active">
+    html += `
+      <div class="section-divider"></div>
+      <div class="detail-section">
+        <h3 class="section-title">✅ Yes / No</h3>
         <div class="yes-or-no">
           <div class="explanation">${yesOrNo}</div>
         </div>
       </div>
     `;
+
+    detailContent.innerHTML = html;
+    detailContent.scrollTop = 0;
   }
 
   // ========================================

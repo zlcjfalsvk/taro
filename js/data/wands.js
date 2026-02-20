@@ -258,7 +258,7 @@ const wandsCards = [
     number: "8",
     name: "Eight of Wands",
     nameKo: "완드 8",
-    image: "https://upload.wikimedia.org/wikipedia/commons/6/6a/Wands08.jpg",
+    image: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Wands08.jpg",
     keywords: ["속도", "움직임", "빠른 진전", "소통", "행동"],
     description: "완드 8은 하늘을 가로질러 빠르게 날아가는 여덟 개의 완드를 보여줍니다. 장애물 없이 목표를 향해 직진하는 모습으로, 빠른 행동과 신속한 진전을 상징합니다. 모든 것이 빠르게 움직이며 결과가 곧 나타날 것입니다.",
     upright: "모든 것이 빠르게 움직이는 시기입니다. 지연되었던 일들이 갑자기 진전을 보이고, 소식과 결과가 신속하게 도착합니다. 이 에너지의 흐름을 타고 신속하게 행동하세요. 여행이나 이동의 가능성도 있습니다.",

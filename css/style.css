@@ -340,70 +340,27 @@ body {
   font-weight: 500;
 }
 
-/* ========================================
-   Modal Detail Tabs
-   ======================================== */
-.detail-tabs {
-  display: flex;
-  gap: 0;
-  border-bottom: 2px solid var(--color-border);
-  margin-bottom: 1rem;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.detail-tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.detail-tab {
-  padding: 0.55rem 0.8rem;
-  border: none;
-  background: none;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--color-text-light);
-  cursor: pointer;
-  white-space: nowrap;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
-  transition: var(--transition);
-}
-
-.detail-tab:hover {
-  color: var(--color-primary);
-}
-
-.detail-tab.active {
-  color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
-}
-
-/* Detail Content */
+/* Detail Content (scroll view) */
 .detail-content {
   flex: 1;
   overflow-y: auto;
 }
 
-.detail-panel {
-  display: none;
+.detail-section {
+  padding: 0.5rem 0;
 }
 
-.detail-panel.active {
-  display: block;
-}
-
-.detail-panel p {
-  margin-bottom: 0.8rem;
-  font-size: 0.92rem;
-  line-height: 1.7;
-}
-
-.detail-panel h3 {
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
+.section-title {
+  font-size: 1.05rem;
+  font-weight: 700;
   color: var(--color-primary-dark);
+  margin-bottom: 0.7rem;
+}
+
+.section-divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 1rem 0;
 }
 
 /* Upright / Reversed sections */
@@ -578,11 +535,6 @@ body {
     font-size: 1.2rem;
   }
 
-  .detail-tab {
-    font-size: 0.75rem;
-    padding: 0.5rem 0.6rem;
-  }
-
   .header {
     padding: 1rem;
   }
@@ -646,8 +598,7 @@ body {
 /* Focus styles for accessibility */
 .card-item:focus-visible,
 .nav-tab:focus-visible,
-.sub-tab:focus-visible,
-.detail-tab:focus-visible {
+.sub-tab:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }

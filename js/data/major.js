@@ -215,7 +215,7 @@ const majorArcana = [
     number: "VI",
     name: "The Lovers",
     nameKo: "연인",
-    image: "https://upload.wikimedia.org/wikipedia/commons/3/3a/TheLovers.jpg",
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_06_Lovers.jpg",
     keywords: ["사랑", "선택", "조화", "가치관"],
     description: "연인 카드는 사랑과 결합, 그리고 중요한 선택을 상징합니다. 두 가지 길 사이에서 가치관에 따른 결정을 내려야 하는 순간을 나타냅니다. 진정한 사랑과 조화, 그리고 자신의 가치에 충실한 선택이 핵심 메시지입니다.",
     upright: "사랑과 조화가 가득한 시기입니다. 중요한 선택의 순간에 마음의 소리를 따르세요. 파트너십이나 협력 관계가 큰 시너지를 만들어낼 수 있으며, 자신의 가치관에 충실한 결정이 옳은 길로 이끌 것입니다.",
