@@ -47,9 +47,13 @@
       item.setAttribute('aria-label', `${card.nameKo} (${card.name})`);
       item.dataset.cardId = card.id;
 
+      const label = card.type === 'major'
+        ? `${card.id.split('-')[1]}. ${card.nameKo}`
+        : card.nameKo;
+
       item.innerHTML = `
         <img src="${card.image}" alt="${card.nameKo}" loading="lazy">
-        <div class="card-label">${card.nameKo}</div>
+        <div class="card-label">${label}</div>
         <div class="card-label-en">${card.name}</div>
       `;
 
@@ -115,7 +119,7 @@
 
   function getCardDisplayNumber(card) {
     if (card.type === 'major') {
-      return `메이저 아르카나 ${card.number}번`;
+      return `메이저 아르카나 ${card.id.split('-')[1]}번`;
     }
     const suitNames = {
       wands: '완드',
