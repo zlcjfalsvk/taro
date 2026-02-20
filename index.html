@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>타로 카드 가이드</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <h1>타로 카드 가이드</h1>
+    <p>78장의 라이더-웨이트 타로 카드 학습</p>
+  </header>
+
+  <!-- Main Navigation -->
+  <nav class="nav-tabs" role="tablist">
+    <button class="nav-tab active" data-tab="major" role="tab" aria-selected="true">메이저 아르카나</button>
+    <button class="nav-tab" data-tab="minor" role="tab" aria-selected="false">마이너 아르카나</button>
+  </nav>
+
+  <!-- Minor Arcana Sub Navigation -->
+  <nav class="sub-nav" role="tablist" aria-label="마이너 아르카나 슈트">
+    <button class="sub-tab active" data-suit="wands" role="tab" aria-selected="true">완드 (Wands)</button>
+    <button class="sub-tab" data-suit="cups" role="tab" aria-selected="false">컵 (Cups)</button>
+    <button class="sub-tab" data-suit="swords" role="tab" aria-selected="false">소드 (Swords)</button>
+    <button class="sub-tab" data-suit="pentacles" role="tab" aria-selected="false">펜타클 (Pentacles)</button>
+  </nav>
+
+  <!-- Card Grid -->
+  <main class="card-grid-container">
+    <div class="card-grid" id="cardGrid" role="grid"></div>
+  </main>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-label="카드 상세 정보">
+    <div class="modal">
+      <button class="modal-close" id="modalClose" aria-label="닫기">&times;</button>
+
+      <!-- Left: Image -->
+      <div class="modal-image">
+        <img id="modalImg" src="" alt="">
+        <div class="modal-mobile-info">
+          <h2 id="modalMobileTitle"></h2>
+          <span class="card-number" id="modalMobileNumber"></span>
+        </div>
+      </div>
+
+      <!-- Right: Content -->
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modalTitle"></h2>
+          <span class="card-number" id="modalNumber"></span>
+        </div>
+
+        <div class="keywords" id="modalKeywords"></div>
+
+        <!-- Detail Tabs -->
+        <div class="detail-tabs" role="tablist">
+          <button class="detail-tab active" data-detail="description" role="tab">📖 카드 설명</button>
+          <button class="detail-tab" data-detail="love" role="tab">❤️ 사랑</button>
+          <button class="detail-tab" data-detail="career" role="tab">💼 직업</button>
+          <button class="detail-tab" data-detail="finance" role="tab">💰 금전</button>
+          <button class="detail-tab" data-detail="health" role="tab">🏥 건강</button>
+          <button class="detail-tab" data-detail="creativity" role="tab">🎨 창작</button>
+          <button class="detail-tab" data-detail="yesOrNo" role="tab">✅ Yes/No</button>
+        </div>
+
+        <!-- Detail Panels -->
+        <div class="detail-content" id="detailContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data/major.js"></script>
+  <script src="js/data/wands.js"></script>
+  <script src="js/data/cups.js"></script>
+  <script src="js/data/swords.js"></script>
+  <script src="js/data/pentacles.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
