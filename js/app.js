@@ -16,6 +16,8 @@
   const modalMobileNumber = document.getElementById('modalMobileNumber');
   const modalKeywords = document.getElementById('modalKeywords');
   const detailContent = document.getElementById('detailContent');
+  const sectionNav = document.getElementById('sectionNav');
+  const modalImage = document.querySelector('.modal-image');
   const navTabs = document.querySelectorAll('.nav-tab');
   const subNav = document.querySelector('.sub-nav');
   const subTabs = document.querySelectorAll('.sub-tab');
@@ -153,6 +155,9 @@
     // Render all sections
     renderAllSections(card);
 
+    // Reset image shrink state
+    modalImage.classList.remove('shrink');
+
     // Show modal
     modalOverlay.classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -164,12 +169,29 @@
     modalClose.focus();
   }
 
+  // Scroll event: shrink/restore image on mobile
+  detailContent.addEventListener('scroll', function() {
+    if (window.innerWidth >= 700) return;
+    if (detailContent.scrollTop > 30) {
+      modalImage.classList.add('shrink');
+    } else {
+      modalImage.classList.remove('shrink');
+    }
+  });
+
   function closeModal(fromPopstate) {
     if (!modalOverlay.classList.contains('open')) return;
 
     modalOverlay.classList.remove('open');
     document.body.style.overflow = '';
     currentCard = null;
+    modalImage.classList.remove('shrink');
+
+    // Clean up section observer
+    if (sectionObserver) {
+      sectionObserver.disconnect();
+      sectionObserver = null;
+    }
 
     // Remove history entry unless triggered by popstate
     if (!fromPopstate) {
@@ -207,20 +229,25 @@
   // All Sections Rendering (scroll view)
   // ========================================
 
-  function renderAllSections(card) {
-    const situations = [
-      { key: 'love', title: '❤️ 사랑 & 관계' },
-      { key: 'career', title: '💼 직업 & 커리어' },
-      { key: 'finance', title: '💰 금전 & 재정' },
-      { key: 'health', title: '🏥 건강' },
-      { key: 'creativity', title: '🎨 창작 & 예술' }
-    ];
+  // Section navigation definitions
+  const sectionDefs = [
+    { key: 'description', label: '📖 설명', title: '📖 카드 설명' },
+    { key: 'love', label: '❤️ 사랑', title: '❤️ 사랑 & 관계' },
+    { key: 'career', label: '💼 직업', title: '💼 직업 & 커리어' },
+    { key: 'finance', label: '💰 금전', title: '💰 금전 & 재정' },
+    { key: 'health', label: '🏥 건강', title: '🏥 건강' },
+    { key: 'creativity', label: '🎨 창작', title: '🎨 창작 & 예술' },
+    { key: 'yesOrNo', label: '✅ Yes/No', title: '✅ Yes / No' }
+  ];
 
+  let sectionObserver = null;
+
+  function renderAllSections(card) {
     let html = '';
 
     // Description section
     html += `
-      <div class="detail-section">
+      <div class="detail-section" data-section="description">
         <h3 class="section-title">📖 카드 설명</h3>
         <div class="card-description">${card.description}</div>
         <div class="meaning-section upright">
@@ -235,13 +262,21 @@
     `;
 
     // Situation sections
+    const situations = [
+      { key: 'love', title: '❤️ 사랑 & 관계' },
+      { key: 'career', title: '💼 직업 & 커리어' },
+      { key: 'finance', title: '💰 금전 & 재정' },
+      { key: 'health', title: '🏥 건강' },
+      { key: 'creativity', title: '🎨 창작 & 예술' }
+    ];
+
     situations.forEach(({ key, title }) => {
       const data = card.situations[key];
       if (!data) return;
 
       html += `
         <div class="section-divider"></div>
-        <div class="detail-section">
+        <div class="detail-section" data-section="${key}">
           <h3 class="section-title">${title}</h3>
           <div class="meaning-section upright">
             <h4>▲ 정방향</h4>
@@ -259,7 +294,7 @@
     const yesOrNo = card.situations.yesOrNo || '정보 없음';
     html += `
       <div class="section-divider"></div>
-      <div class="detail-section">
+      <div class="detail-section" data-section="yesOrNo">
         <h3 class="section-title">✅ Yes / No</h3>
         <div class="yes-or-no">
           <div class="explanation">${yesOrNo}</div>
@@ -269,6 +304,72 @@
 
     detailContent.innerHTML = html;
     detailContent.scrollTop = 0;
+
+    // Build section navigation buttons (mobile)
+    renderSectionNav(card);
+  }
+
+  function renderSectionNav(card) {
+    sectionNav.innerHTML = '';
+
+    // Clean up previous observer
+    if (sectionObserver) {
+      sectionObserver.disconnect();
+      sectionObserver = null;
+    }
+
+    const availableSections = sectionDefs.filter(def => {
+      if (def.key === 'description' || def.key === 'yesOrNo') return true;
+      return card.situations[def.key];
+    });
+
+    availableSections.forEach(def => {
+      const btn = document.createElement('button');
+      btn.className = 'section-nav-btn';
+      btn.textContent = def.label;
+      btn.dataset.section = def.key;
+      btn.addEventListener('click', () => {
+        // Immediately set active state
+        sectionNav.querySelectorAll('.section-nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const target = detailContent.querySelector(`[data-section="${def.key}"]`);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+      sectionNav.appendChild(btn);
+    });
+
+    // Set up IntersectionObserver for active highlight
+    setupSectionObserver();
+  }
+
+  function setupSectionObserver() {
+    const sections = detailContent.querySelectorAll('.detail-section[data-section]');
+    if (sections.length === 0) return;
+
+    sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const key = entry.target.dataset.section;
+          const btns = sectionNav.querySelectorAll('.section-nav-btn');
+          btns.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.section === key);
+          });
+          // Scroll active button into view in nav
+          const activeBtn = sectionNav.querySelector('.section-nav-btn.active');
+          if (activeBtn) {
+            activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          }
+        }
+      });
+    }, {
+      root: detailContent,
+      threshold: 0.1,
+      rootMargin: '0px 0px -60% 0px'
+    });
+
+    sections.forEach(section => sectionObserver.observe(section));
   }
 
   // ========================================

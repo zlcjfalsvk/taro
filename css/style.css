@@ -344,6 +344,11 @@ body {
   font-weight: 500;
 }
 
+/* Section Navigation (mobile only) */
+.section-nav {
+  display: none;
+}
+
 /* Detail Content (scroll view) */
 .detail-content {
   flex: 1;
@@ -634,5 +639,76 @@ body {
 
   .modal-content .modal-header {
     display: none;
+  }
+
+  /* Image shrink on scroll */
+  .modal-image {
+    transition: padding 0.3s ease;
+  }
+
+  .modal-image img {
+    transition: max-width 0.3s ease, max-height 0.3s ease;
+  }
+
+  .modal-image.shrink {
+    padding: 0.5rem 1rem;
+  }
+
+  .modal-image.shrink img {
+    max-width: 60px;
+    max-height: 90px;
+  }
+
+  .modal-mobile-info h2 {
+    transition: font-size 0.3s ease;
+  }
+
+  .modal-image.shrink .modal-mobile-info h2 {
+    font-size: 0.95rem;
+  }
+
+  .modal-image.shrink .modal-mobile-info .card-number {
+    font-size: 0.7rem;
+  }
+
+  /* Bottom spacer so last sections can scroll to top */
+  .detail-content {
+    padding-bottom: 60vh;
+  }
+
+  /* Section Navigation */
+  .section-nav {
+    display: flex;
+    gap: 0.4rem;
+    padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-shrink: 0;
+  }
+
+  .section-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .section-nav-btn {
+    flex: 0 0 auto;
+    padding: 0.35rem 0.75rem;
+    border: 1.5px solid var(--color-primary-light);
+    border-radius: 20px;
+    background: var(--color-surface);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .section-nav-btn.active {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
   }
 }
