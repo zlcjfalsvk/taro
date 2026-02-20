@@ -272,6 +272,23 @@
   }
 
   // ========================================
+  // Sticky Navigation Offsets
+  // ========================================
+
+  const header = document.querySelector('.header');
+  const navTabsEl = document.querySelector('.nav-tabs');
+
+  function updateStickyOffsets() {
+    const headerHeight = header.offsetHeight;
+    const navTabsHeight = navTabsEl.offsetHeight;
+    navTabsEl.style.top = headerHeight + 'px';
+    subNav.style.top = (headerHeight + navTabsHeight) + 'px';
+  }
+
+  updateStickyOffsets();
+  window.addEventListener('resize', updateStickyOffsets);
+
+  // ========================================
   // Initialize
   // ========================================
 
