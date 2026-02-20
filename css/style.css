@@ -278,10 +278,11 @@ body {
 /* Modal Right - Content */
 .modal-content {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .modal-close {
@@ -344,6 +345,7 @@ body {
 .detail-content {
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .detail-section {
@@ -516,7 +518,7 @@ body {
 
   .modal-content {
     flex: 1;
-    overflow-y: auto;
+    overflow: hidden;
     padding: 1rem;
   }
 
