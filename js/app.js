@@ -21,10 +21,28 @@
   const navTabs = document.querySelectorAll('.nav-tab');
   const subNav = document.querySelector('.sub-nav');
   const subTabs = document.querySelectorAll('.sub-tab');
+  const modalPrev = document.getElementById('modalPrev');
+  const modalNext = document.getElementById('modalNext');
+  const modalImgLoader = document.getElementById('modalImgLoader');
+
   // State
   let currentTab = 'major';
   let currentSuit = 'wands';
   let currentCard = null;
+
+  // Image loader helpers
+  function showImageLoader() {
+    modalImgLoader.classList.add('visible');
+    modalImg.classList.add('loading');
+  }
+
+  function hideImageLoader() {
+    modalImgLoader.classList.remove('visible');
+    modalImg.classList.remove('loading');
+  }
+
+  modalImg.addEventListener('load', hideImageLoader);
+  modalImg.addEventListener('error', hideImageLoader);
 
   // ========================================
   // Card Rendering
@@ -135,7 +153,11 @@
   function openModal(card) {
     currentCard = card;
 
-    // Set image
+    // Set image with loading state
+    const isSameImage = modalImg.src && modalImg.src.endsWith(card.image);
+    if (!isSameImage) {
+      showImageLoader();
+    }
     modalImg.src = card.image;
     modalImg.alt = card.nameKo;
 
@@ -158,12 +180,19 @@
     // Reset image shrink state
     modalImage.classList.remove('shrink');
 
+    // Update nav button visibility
+    updateNavButtons();
+
+    // Push history state for mobile back button (only on first open, not navigation)
+    const wasAlreadyOpen = modalOverlay.classList.contains('open');
+
     // Show modal
     modalOverlay.classList.add('open');
     document.body.style.overflow = 'hidden';
 
-    // Push history state for mobile back button
-    history.pushState({ modal: true }, '');
+    if (!wasAlreadyOpen) {
+      history.pushState({ modal: true }, '');
+    }
 
     // Focus trap
     modalClose.focus();
@@ -179,8 +208,34 @@
     }
   });
 
+  function scrollToCard(cardId) {
+    requestAnimationFrame(() => {
+      const cardEl = document.querySelector(`.card-item[data-card-id="${cardId}"]`);
+      if (!cardEl) return;
+
+      const headerHeight = header.offsetHeight;
+      const navHeight = navTabsEl.offsetHeight;
+      const subNavHeight = subNav.classList.contains('visible') ? subNav.offsetHeight : 0;
+      const offset = headerHeight + navHeight + subNavHeight + 12;
+
+      const rect = cardEl.getBoundingClientRect();
+      const scrollTarget = window.scrollY + rect.top - offset;
+
+      window.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+
+      // Highlight effect
+      cardEl.classList.add('highlight');
+      cardEl.addEventListener('animationend', () => {
+        cardEl.classList.remove('highlight');
+      }, { once: true });
+    });
+  }
+
   function closeModal(fromPopstate) {
     if (!modalOverlay.classList.contains('open')) return;
+
+    // Save card ID before clearing state
+    const lastCardId = currentCard ? currentCard.id : null;
 
     modalOverlay.classList.remove('open');
     document.body.style.overflow = '';
@@ -198,9 +253,10 @@
       history.back();
     }
 
-    // Return focus to the card that opened the modal
-    const activeCard = document.querySelector('.card-item:focus, .card-item:hover');
-    if (activeCard) activeCard.focus();
+    // Scroll to and highlight the card
+    if (lastCardId) {
+      scrollToCard(lastCardId);
+    }
   }
 
   // Close modal on mobile back button
@@ -218,12 +274,159 @@
     }
   });
 
-  // Keyboard: ESC to close
+  // ========================================
+  // Card Navigation (Prev / Next)
+  // ========================================
+
+  // Returns all cards in order: Major → Wands → Cups → Swords → Pentacles
+  function getAllCardsOrdered() {
+    const suitOrder = ['wands', 'cups', 'swords', 'pentacles'];
+    const major = tarotCards.filter(c => c.type === 'major');
+    const minor = suitOrder.flatMap(suit =>
+      tarotCards.filter(c => c.type === 'minor' && c.suit === suit)
+    );
+    return [...major, ...minor];
+  }
+
+  // Sync tab/sub-tab UI to match the given card
+  function syncTabsToCard(card) {
+    if (card.type === 'major') {
+      if (currentTab !== 'major') {
+        currentTab = 'major';
+        navTabs.forEach(t => {
+          const isMajor = t.dataset.tab === 'major';
+          t.classList.toggle('active', isMajor);
+          t.setAttribute('aria-selected', isMajor ? 'true' : 'false');
+        });
+        subNav.classList.remove('visible');
+        renderCards();
+      }
+    } else {
+      if (currentTab !== 'minor') {
+        currentTab = 'minor';
+        navTabs.forEach(t => {
+          const isMinor = t.dataset.tab === 'minor';
+          t.classList.toggle('active', isMinor);
+          t.setAttribute('aria-selected', isMinor ? 'true' : 'false');
+        });
+        subNav.classList.add('visible');
+      }
+      if (currentSuit !== card.suit) {
+        currentSuit = card.suit;
+        subTabs.forEach(t => {
+          const isMatch = t.dataset.suit === card.suit;
+          t.classList.toggle('active', isMatch);
+          t.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+        });
+        renderCards();
+      }
+    }
+  }
+
+  let isNavigating = false;
+
+  function navigateCard(direction) {
+    if (!currentCard || isNavigating) return;
+    const allCards = getAllCardsOrdered();
+    const currentIndex = allCards.findIndex(c => c.id === currentCard.id);
+    if (currentIndex === -1) return;
+
+    const newIndex = currentIndex + direction;
+    if (newIndex < 0 || newIndex >= allCards.length) return;
+
+    isNavigating = true;
+    const nextCard = allCards[newIndex];
+    const exitClass = direction > 0 ? 'card-exit-left' : 'card-exit-right';
+    const enterClass = direction > 0 ? 'card-enter-right' : 'card-enter-left';
+
+    // Exit animation
+    modal.classList.add(exitClass);
+
+    setTimeout(() => {
+      modal.classList.remove(exitClass);
+
+      // Update content
+      syncTabsToCard(nextCard);
+      modal.classList.add('no-entry-animation');
+      openModal(nextCard);
+      modal.classList.remove('no-entry-animation');
+
+      // Enter animation
+      modal.classList.add(enterClass);
+
+      setTimeout(() => {
+        modal.classList.remove(enterClass);
+        isNavigating = false;
+      }, 150);
+    }, 150);
+
+    // Safety fallback
+    setTimeout(() => { isNavigating = false; }, 500);
+  }
+
+  modalPrev.addEventListener('click', (e) => {
+    e.stopPropagation();
+    navigateCard(-1);
+  });
+
+  modalNext.addEventListener('click', (e) => {
+    e.stopPropagation();
+    navigateCard(1);
+  });
+
+  function updateNavButtons() {
+    const allCards = getAllCardsOrdered();
+    const currentIndex = allCards.findIndex(c => c.id === currentCard.id);
+    modalPrev.classList.toggle('hidden', currentIndex <= 0);
+    modalNext.classList.toggle('hidden', currentIndex >= allCards.length - 1);
+  }
+
+  // Keyboard: ESC to close, Arrow keys to navigate
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
+    if (!modalOverlay.classList.contains('open')) return;
+    if (e.key === 'Escape') {
       closeModal();
+    } else if (e.key === 'ArrowLeft') {
+      navigateCard(-1);
+    } else if (e.key === 'ArrowRight') {
+      navigateCard(1);
     }
   });
+
+  // ========================================
+  // Mobile Swipe Navigation
+  // ========================================
+
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let isSwiping = false;
+
+  const modal = document.querySelector('.modal');
+
+  modal.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    isSwiping = true;
+  }, { passive: true });
+
+  modal.addEventListener('touchend', (e) => {
+    if (!isSwiping) return;
+    isSwiping = false;
+
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+
+    // Require minimum horizontal distance and more horizontal than vertical
+    if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+
+    if (deltaX < 0) {
+      navigateCard(1);  // swipe left → next
+    } else {
+      navigateCard(-1); // swipe right → prev
+    }
+  }, { passive: true });
 
   // ========================================
   // All Sections Rendering (scroll view)
@@ -231,13 +434,13 @@
 
   // Section navigation definitions
   const sectionDefs = [
+    { key: 'yesOrNo', label: '✅ Yes/No', title: '✅ Yes / No' },
     { key: 'description', label: '📖 설명', title: '📖 카드 설명' },
     { key: 'love', label: '❤️ 사랑', title: '❤️ 사랑 & 관계' },
     { key: 'career', label: '💼 직업', title: '💼 직업 & 커리어' },
     { key: 'finance', label: '💰 금전', title: '💰 금전 & 재정' },
     { key: 'health', label: '🏥 건강', title: '🏥 건강' },
-    { key: 'creativity', label: '🎨 창작', title: '🎨 창작 & 예술' },
-    { key: 'yesOrNo', label: '✅ Yes/No', title: '✅ Yes / No' }
+    { key: 'creativity', label: '🎨 창작', title: '🎨 창작 & 예술' }
   ];
 
   let sectionObserver = null;
@@ -245,8 +448,20 @@
   function renderAllSections(card) {
     let html = '';
 
+    // Yes/No section (top)
+    const yesOrNo = card.situations.yesOrNo || '정보 없음';
+    html += `
+      <div class="detail-section" data-section="yesOrNo">
+        <h3 class="section-title">✅ Yes / No</h3>
+        <div class="yes-or-no">
+          <div class="explanation">${yesOrNo}</div>
+        </div>
+      </div>
+    `;
+
     // Description section
     html += `
+      <div class="section-divider"></div>
       <div class="detail-section" data-section="description">
         <h3 class="section-title">📖 카드 설명</h3>
         <div class="card-description">${card.description}</div>
@@ -289,18 +504,6 @@
         </div>
       `;
     });
-
-    // Yes/No section
-    const yesOrNo = card.situations.yesOrNo || '정보 없음';
-    html += `
-      <div class="section-divider"></div>
-      <div class="detail-section" data-section="yesOrNo">
-        <h3 class="section-title">✅ Yes / No</h3>
-        <div class="yes-or-no">
-          <div class="explanation">${yesOrNo}</div>
-        </div>
-      </div>
-    `;
 
     detailContent.innerHTML = html;
     detailContent.scrollTop = 0;
